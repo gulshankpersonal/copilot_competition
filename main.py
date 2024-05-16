@@ -1,25 +1,22 @@
-import pandas as pd
+from pyspark.sql import SparkSession
 
-def read_files_to_dataframe(location):
-    # Get a list of file paths in the specified location
-    file_paths = glob.glob(location)
+def read_files(location, file_extension):
+    spark = SparkSession.builder.getOrCreate()
+    
+    if file_extension == 'csv':
+        df = spark.read.csv(location, header=True, inferSchema=True)
+    elif file_extension == 'json':
+        df = spark.read.json(location)
+    elif file_extension == 'parquet':
+        df = spark.read.parquet(location)
+    elif file_extension == 'avro':
+        df = spark.read.format("avro").load(location)
+    else:
+        raise ValueError("Unsupported file extension")
+    
+    return df
 
-    # Initialize an empty list to store dataframes
-    dfs = []
-
-    # Iterate over each file path
-    for file_path in file_paths:
-        # Read the file into a dataframe
-        df = pd.read_csv(file_path)  # Modify this line based on your file format
-
-        # Append the dataframe to the list
-        dfs.append(df)
-
-    # Concatenate all dataframes into a single dataframe
-    merged_df = pd.concat(dfs)
-
-    # Reset the index of the merged dataframe
-    merged_df.reset_index(drop=True, inplace=True)
-
-    # Return the merged dataframe
-    return merged_df
+    pnr_sample = read_files('/mnt/ppeedp/raw/competition/pnr_sample', 'parquet')
+    distance_master = read_files('/mnt/stppeedp/ppeedp/CBI2/production/reference_zone/distance_master', 'parquet')
+    location_master = read_files('/mnt/stppeedp/ppeedp/raw/eag/ey/test_cbi_reference_data_loader/target_dir/Location_master', 'parquet')
+    backtrackexception_master = read_files('/mnt/stppeedp/ppeedp/raw/eag/ey/test_cbi_reference_data_loader/target_dir/BacktrackExceptionmaster', 'parquet')
