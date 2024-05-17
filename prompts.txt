@@ -1,0 +1,175 @@
+#initialize spark session
+
+#NOTE: Fix import issues using copilot as option whereever necessary
+
+STEP 1  AND 2 FROM RUN BOOK TO BE EXECUTED HERE. 
+
+#create table_detail, write_path, write_format as variables and initialize them to none 
+
+# set table_details, write_path and write_format based on the context
+
+
+#Define a Pyspark function named read_files_into_dataframe with two parameters: location (a string representing the location of the files) and format (a string representing the format of the files).
+    Assume spark session is already available.
+    Read the file as per the format from the given location and returns the dataframe.
+    
+    If there are any issues reading the files, ensure the function raises a ValueError with an appropriate error message from inside the function.
+
+#call the above function to create DataFrames for each of the tables in the table_details
+
+################
+#     Create a function named convert_location_to_decimal that takes a single argument location.
+    The function should handle the conversion of location coordinates from degrees, minutes, and seconds to decimal format.
+    Inside the function, initialize a variable named direction to store the last character of the location argument.
+    Determine the sign based on the direction (N, S, E, W). If the direction is N or E, set the sign to 1, otherwise set it to -1.
+    Remove the direction character from the location string.
+    Split the location string by the period (.) character.
+    Extract the degree, minute, and second components from the split location string.
+    If there is no period in the location, set minute and second to 0. If there's one period, set second to 0.
+    Convert degree, minute, and second to integers.
+    Calculate the decimal value using the formula: sign * (degree + minute / 60 + second / 3600).
+    Handle any exceptions that may occur during the conversion process and return 0 in case of an error.
+    Create a user-defined function (UDF) named convert_location_to_decimal_udf that wraps the convert_location_to_decimal function.
+    The UDF should have a return type of FloatType().
+
+# NOTE :- follow step 3 from runbook if the function does not work.
+
+#######
+# In the pnr_sample, rename the columns as suggested.
+	SEG_SEQ_NBR  to SegSequenceNumber   
+	OPT_ALN_CD  to IssueAlnCode  
+	ORIG_AP_CD  to Origin_Airport_Code  
+	DESTN_AP_CD  to Destination_Airport_Code  
+	fl_dt to  flight_date 
+
+ in the location_master, rename the column ap_cd_val to airport_code
+#########
+#add PNR, dep_date, dep_time, arrival_date, arrival_time, pnrCreateDate
+    length_of_stay to pnr_sample dataframe. All these fields will have default value as ’NA'.
+
+# remove id column from distance_master dataframe
+
+#Add a new column to pnr_sample as id as concatenation of following fields PNR, PNRCreateDate, SegSequenceNumber, IssueAlnCode
+
+
+
+#create a column start_finish_distance_in_km by pulling distance_in_km from distance_master such that 
+    Pnr_sample.point_of_commencement = distance_master.airport_destination_code and 
+	   pnr_sample.point_of_finish= distance_master.airport_origin_code
+    similarly create start_finish_distance_in_miles by pulling distance_in_miles
+
+# select all the columns of pnr_sample_df and distance_in_km and distance_in_miles columns from joined_df
+
+# do a left join with location_master_df on Origin_Airport_Code=airport_code and latitude renamed 
+    to origin_latitude and longitude renamed to origin_longitude
+
+# remove duplicate columns from the result_df
+
+# do a left join with location_master_df on Destination_Airport_Code=airport_code and 
+    latitude renamed to destination_latitude and longitude renamed to destination_longitude  
+
+# remove duplicate columns from the result_df
+
+#######
+
+#For rows where distance_in_km, distance_in_miles is null, populate distance_in_km using haversian formula
+   the haversine formula is as below
+       a = sin^2((latitude1-latitude2)/2) + cos(latitude1).cos(latitude2).sin^2((logitude1-longitude2)/2)
+		c = 2*a*tan(2(a^0.5, (1-a)^0.5))
+		R = 6371km
+		distance = R.c
+    similarly populate distance_in_miles where distance_in_miles is null with R=3959 miles 
+    and rest of the formula remaining the same
+
+# Group by pnrhash and calculate sum of distance_in_km and store it in tdc dataframe
+
+# Group by pnrhash and calculate first of origin_airport_code and store it in ffd dataframe
+
+# Group by pnrhash and calculate last of destination_airport_code and store it in lfd dataframe
+
+# take pnrhash, origin_airport_code, destination_airport_code, IssueAlnCode 
+    from result_df and store it in odframe dataframe
+    
+# create a column origin_issue_airline in odf by concatenating origin_airport_code and IssueAlnCode with space
+
+# Group by pnrhash and create od by collecting all the origin_issue_airline values  and 
+    also create a column airport_codes_list by collecting all the origin_airport_code values in the list
+
+# modify the od by joining the values in the list with space and airport_codes_list with hyphen
+
+# craete orig_dest_df by joining lfd and ffd on pnrhash and create a new column 
+    orig_dest by concatenating first_origin_airport_code and last_destination_airport_code without space
+
+# create a new column orig_dest_exception in backtrackexception_master_df by concatenating origin_airport_code 
+    and destination_airport_code without space
+
+# left join orig_dest_df with backtrackexception_master_df on orig_dest=orig_dest_exception 
+	and create a new column exception_flag such that when orig_dest_exception is not null then 'Y' else 'N' 
+	store it in exception_df
+NOTE: Manully put columns inside dataframes df[‘col_name’] to identify if the code generated errors 
+	out with col error df[‘col_name’]
+
+# left join odf with exception_df on pnrhash and store it in odframe2 dataframe
+
+# left join odf2 with tdc on pnrhash and store it in odframe3 dataframe
+
+# take odframe3 do a left join with location_master_df on first_origin_airport_code=airport_code 
+	and latitude renamed to start_latitude and longitude renamed to start_longitude 
+# remove duplicate columns from odframe3
+
+# take odframe3 do a left join with location_master_df on last_destination_airport_code=airport_code 
+	and latitude renamed to finish_latitude and longitude renamed to finish_longitude
+
+# remove duplicate columns from odframe3
+
+#join odframe3 with distance_master_df on first_origin_airport_code=airport_origin_code and 
+	last_destination_airport_code=airport_destination_code and take disance_in_km as start_finish_direct_distance
+
+#remove duplicate columns from odframe3
+
+# for rows where start_finish_direct_distance is null, calculate the distance using haversine formula and 
+	store it in start_finish_direct_distance
+	use start_latitude, start_longitude, finish_latitude, finish_longitude for the calculation
+
+# Create a column circuit_rule_distance_flag such that when start_finish_direct_distance*1.6 is 
+ 	less than total_distance_covered then 'Y' else ’N’
+
+# concatenate last_destination_airport_code to od using space and also concatenate 
+	last_destination_airport_code to airport_codes_list using hyphen
+
+# create a column od_new such that when exception_flag is 'Y' then orig_dest else 
+ (if circuit_rule_distance_flag is 'Y' then od orig_dest)
+
+# create a column true_od_distance as start_finish_direct_distance if (od_new is orig_dest 
+	and (exception_flag='Y' or circuit_rule_distance_flag = 'N' )else total_distance_covered
+
+# create a new column online_od_distance as true_od_distance if ' EY ' in od  else null
+
+# create a new column online_od if ' EY ' in od_new then od_new else null
+
+#rename airport_codes_list to online_od_itinerary, od to journey_operating, first_origin_airport_code 
+	to point_of_commencement, last_destination_airport_code to point_of_finish, od_new to true_od
+
+# select id, PNR, PNRHash, PNRCreateDate, IssueAlnCode, SegSequenceNumber,  true_od, online_od, online_od_itinerary, 
+    dep_date, dep_time, arrival_date, arrival_time, online_od_distance, length_of_stay, journey_operating,
+    point_of_commencement, point_of_finish, true_od_distance from result_df left joined with odframe3 on pnrhash
+
+# overwrite final df as parquet file into the write_path as per the write_format and write_mode 
+
+# read and display the result from the write_path using read_files_into_dataframe function and format as write_format into read_result_df
+
+#store it in temp view read_result_df
+
+# read and display the result from the write_path using read_files_into_dataframe function and format as
+ write_format into a dataframe
+
+#store it in any temp view and display the result
+
+
+
+
+
+
+
+
+
