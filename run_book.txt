@@ -17,7 +17,7 @@ local_table_datails = """
 
 write_mode = 'overwrite'
 
-ppe_write_path = '/mnt/stppeedp/ppeedp/raw/eag/ey/eygulshank/result_set'
+ppe_write_path = '/mnt/stppeedp/ppeedp/raw/eag/ey/eygulshank/result_set/'
 local_write_path = 'output_file/final_df.parquet'
 
 ppe_write_format = 'delta'
