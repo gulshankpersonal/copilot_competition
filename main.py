@@ -21,15 +21,15 @@ ppe_table_details = """
 """
 
 local_table_datails = """    
-        'pnr_sample_df' located at ‘part-00000-pnr-sample.snappy.parquet' with the format ‘parquet'.
-        'distance_master_df' located at 'part-00000-distance-master.snappy.parquet' with the format ‘parquet'.
-        'location_master_df' located at 'part-00000-location-master.snappy.parquet' with the format ‘parquet'.
-        'backtrackexception_master_df' located at 'part-00000-backtrackexception-master.snappy.parquet' with the format ‘parquet’.
+        'pnr_sample_df' located at 'input_files/part-00000-pnr-sample.snappy.parquet' with the format ‘parquet'.
+        'distance_master_df' located at 'input_files/part-00000-distance-master.snappy.parquet' with the format ‘parquet'.
+        'location_master_df' located at 'input_files/part-00000-location-master.snappy.parquet' with the format ‘parquet'.
+        'backtrackexception_master_df' located at 'input_files/part-00000-backtrackexception-master.snappy.parquet' with the format ‘parquet’.
         """
 write_mode = 'overwrite'
 
-ppe_write_path = '/mnt/stppeedp/ppeedp/raw/eag/ey/eygulshank/result/'
-local_write_path = 'final_df.parquet'
+ppe_write_path = '/mnt/stppeedp/ppeedp/raw/eag/ey/eygulshank/result_set/'
+local_write_path = 'output_file/final_df.parquet'
 
 ppe_write_format = 'delta'
 local_write_format = 'parquet'
@@ -64,6 +64,13 @@ def read_files_into_dataframe(location, format):
         return df
     except Exception as e:
         raise ValueError(f"Error reading files from {location} with format {format}: {str(e)}")
+    
+# call the above function to create DataFrames for each of the tables in the table_details
+pnr_sample_df = read_files_into_dataframe('/mnt/ppeedp/raw/competition/pnr_sample', 'delta')
+distance_master_df = read_files_into_dataframe('/mnt/stppeedp/ppeedp/CBI2/production/reference_zone/distance_master', 'delta')
+location_master_df = read_files_into_dataframe('/mnt/stppeedp/ppeedp/raw/eag/ey/test_cbi_reference_data_loader/target_dir/Location_master', 'delta')
+backtrackexception_master_df = read_files_into_dataframe('/mnt/stppeedp/ppeedp/raw/eag/ey/test_cbi_reference_data_loader/target_dir/BacktrackExceptionmaster', 'delta')
+
 
 # Create a function named convert_location_to_decimal that takes a single argument location.
 #     The function should handle the conversion of location coordinates from degrees, minutes, and seconds to decimal format.
@@ -95,13 +102,6 @@ def convert_location_to_decimal(location):
         return None
 
 convert_location_to_decimal_udf = udf(convert_location_to_decimal, FloatType())
-
-
-#call the above function to create DataFrames for each of the tables in the table_details
-pnr_sample_df = read_files_into_dataframe('part-00000-pnr-sample.snappy.parquet', 'parquet')
-distance_master_df = read_files_into_dataframe('part-00000-distance-master.snappy.parquet', 'parquet')
-location_master_df = read_files_into_dataframe('part-00000-location-master.snappy.parquet', 'parquet')
-backtrackexception_master_df = read_files_into_dataframe('part-00000-backtrackexception-master.snappy.parquet', 'parquet')
 
 
 # apply the UDF to the location column in the location_master DataFrame

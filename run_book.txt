@@ -1,4 +1,6 @@
-1. copy below code into the test_file.py
+1. pull the git repo from the following url https://github.com/gulshankpersonal/copilot_competition.git
+
+2. copy below code into the test_file.py
 ppe_table_details = """
     'pnr_sample_df' located at '/mnt/stppeedp/ppeedp/raw/eag/ey/eygulshank/pnr_sample/' with the format 'parquet'.
     'distance_master_df' located at '/mnt/stppeedp/ppeedp/raw/eag/ey/eygulshank/distance_master/' with the format 'parquet'.
@@ -7,26 +9,26 @@ ppe_table_details = """
 """
 
 local_table_datails = """    
-        'pnr_sample_df' located at ‘part-00000-pnr-sample.snappy.parquet' with the format ‘parquet'.
-        'distance_master_df' located at 'part-00000-distance-master.snappy.parquet' with the format ‘parquet'.
-        'location_master_df' located at 'part-00000-location-master.snappy.parquet' with the format ‘parquet'.
-        'backtrackexception_master_df' located at 'part-00000-backtrackexception-master.snappy.parquet' with the format ‘parquet’.
+        'pnr_sample_df' located at ‘input_files/part-00000-pnr-sample.snappy.parquet' with the format ‘parquet'.
+        'distance_master_df' located at 'input_files/part-00000-distance-master.snappy.parquet' with the format ‘parquet'.
+        'location_master_df' located at 'input_files/part-00000-location-master.snappy.parquet' with the format ‘parquet'.
+        'backtrackexception_master_df' located at 'input_files/part-00000-backtrackexception-master.snappy.parquet' with the format ‘parquet’.
         """
 
 write_mode = 'overwrite'
 
 ppe_write_path = '/mnt/stppeedp/ppeedp/raw/eag/ey/eygulshank/result_set'
-local_write_path = 'final_df.parquet'
+local_write_path = 'output_file/final_df.parquet'
 
 ppe_write_format = 'delta'
 local_write_format = 'parquet'
 
 context = 'local'
 
-2. if you are planning to run it in local then put context = 'local' else put context = 'ppe'
+3. if you are planning to run it in local then put context = 'local' else put context = 'ppe'
 context = 'ppe'    # here context is 'ppe' as it is expected to run in ppe databricks if planning to run in local then put context = 'local'
 
-3. if convert_location_to_decimal is erroring out then replace the function generated with below code.
+4. if convert_location_to_decimal is erroring out then replace the function generated with below code.
 
 def convert_location_to_decimal(location):
     try:
@@ -43,3 +45,33 @@ def convert_location_to_decimal(location):
         return sign * (int(degree) + int(minute) / 60 + int(second) / 3600)
     except Exception as e:
         return None
+
+5. if facing issue in running in local.
+    check for python path and set it to python3 
+    check for installed version of openjdk, if not found please install openjdk@17 and set JAVA_HOME
+    check for spark version isntalled, if not found please install it.
+    check and install pyspark if not installed.
+
+
+6. IF RUNNING IN LOCAL
+    input_files for each table are inside input_files folder with name of the table in the file name.
+    output will be generated in the output_file path if it is run in local
+   
+   If RUNNING IN PPE
+    input_files for each table are inside /mnt/stppeedp/ppeedp/raw/eag/ey/eygulshank/<table name> with name of folder as table in the file name.
+    output will be generated in the /mnt/stppeedp/ppeedp/raw/eag/ey/eygulshank/result_set if it is run in ppe
+    
+
+7. prompts.txt has co-pilot prompts 
+   sentences with 'NOTE' are not prompts but general direction if something manual is done
+
+8. STEP 1  AND 2 FROM RUN BOOK TO BE EXECUTED HERE --> its not a prompt, it means we need to run step 1 & 2 in run book.
+
+9. if indentation issue is detected in code generated using copilot prompt. Then it needs to be fixed manually.
+
+10. if import depndency is not resolved independently, then it needs to be fixed by clicking on the error line and 
+    selecting fix using co-pilot
+
+11. The prompts in prompts.txt are in order of tranformation needed in the code.
+
+12. main.py has been generated with context = 'ppe'. it can directly run in ppe databricks.
