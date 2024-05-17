@@ -74,4 +74,4 @@ def convert_location_to_decimal(location):
 
 11. The prompts in prompts.txt are in order of tranformation needed in the code.
 
-12. main.py has been generated with context = 'ppe'. it can directly run in ppe databricks.
+12. main.py has been generated with prompts in prompts.txt with context = 'ppe'. it can directly run in ppe databricks.
